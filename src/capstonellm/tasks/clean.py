@@ -3,6 +3,7 @@ import json
 import logging
 import os
 
+import boto3
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 from pyspark.sql.window import Window
@@ -15,8 +16,8 @@ logger = logging.getLogger(__name__)
 def clean(spark: SparkSession, environment: str, tag: str):
     
 
-    questions_raw = spark.read.option("multiLine", "true").json("data/questions.json")
-    answers_raw = spark.read.option("multiLine", "true").json("data/answers.json")
+    questions_raw = spark.read.option("multiLine", "true").json(f"s3a://{llm_bucket}/input/{tag}/questions.json")
+    answers_raw = spark.read.option("multiLine", "true").json(f"s3a://{llm_bucket}/input/{tag}/answers.json")
 
     questions = questions_raw.select(F.explode("items").alias("q")).select(
         F.col("q.question_id").alias("question_id"),
@@ -47,12 +48,13 @@ def clean(spark: SparkSession, environment: str, tag: str):
         "question_id", "question", "title", "link", "answer_id", "answer", "tags"
     )
 
-    output_dir = "output/cleaned"
-    os.makedirs(output_dir, exist_ok=True)
+    s3 = boto3.client("s3")
+    output_prefix = f"cleaned/florencia/{tag}"
+
     for row in cleaned.collect():
         data = row.asDict()
-        with open(f"{output_dir}/{data['question_id']}.json", "w") as f:
-            json.dump(data, f)
+        key = f"{output_prefix}/{data['question_id']}.json"
+        s3.put_object(Bucket=llm_bucket, Key=key, Body=json.dumps(data))
 
 def main():
     parser = argparse.ArgumentParser(description="capstone_llm")
@@ -86,3 +88,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+   
