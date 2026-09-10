@@ -1,5 +1,7 @@
 import argparse
+import json
 import logging
+import os
 
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
@@ -45,7 +47,12 @@ def clean(spark: SparkSession, environment: str, tag: str):
         "question_id", "question", "title", "link", "answer_id", "answer", "tags"
     )
 
-    cleaned.coalesce(1).write.mode("overwrite").json("output/cleaned")
+    output_dir = "output/cleaned"
+    os.makedirs(output_dir, exist_ok=True)
+    for row in cleaned.collect():
+        data = row.asDict()
+        with open(f"{output_dir}/{data['question_id']}.json", "w") as f:
+            json.dump(data, f)
 
 def main():
     parser = argparse.ArgumentParser(description="capstone_llm")
