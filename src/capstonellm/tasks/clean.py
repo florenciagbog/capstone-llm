@@ -13,6 +13,45 @@ from capstonellm.common.spark import ClosableSparkSession
 
 logger = logging.getLogger(__name__)
 
+CUSTOM_QUESTIONS = [
+    {
+        "question_id": "custom-1",
+        "title": "What is Anas CPU model?",
+        "question": "What is Anas CPU model?",
+        "link": "",
+        "answer_id": "custom-1-answer",
+        "answer": "Ryzen 7 9800X3D",
+        "tags": ["custom"],
+    },
+    {
+        "question_id": "custom-2",
+        "title": "What is Anas brother CPU model?",
+        "question": "What is Anas brother CPU model?",
+        "link": "",
+        "answer_id": "custom-2-answer",
+        "answer": "Ryzen 7 9850X3D",
+        "tags": ["custom"],
+    },
+    {
+        "question_id": "custom-3",
+        "title": "Where does Florencia work?",
+        "question": "Where does Florencia work?",
+        "link": "",
+        "answer_id": "custom-3-answer",
+        "answer": "In AMD.",
+        "tags": ["custom"],
+    },
+    {
+        "question_id": "custom-4",
+        "title": "Where does Florencia live?",
+        "question": "Where does Florencia live?",
+        "link": "",
+        "answer_id": "custom-4-answer",
+        "answer": "She lives in Milano in Via Garofalo.",
+        "tags": ["custom"],
+    },
+]
+
 def clean(spark: SparkSession, environment: str, tag: str):
     
 
@@ -51,8 +90,9 @@ def clean(spark: SparkSession, environment: str, tag: str):
     s3 = boto3.client("s3")
     output_prefix = f"cleaned/anas/{tag}"
 
-    for row in cleaned.collect():
-        data = row.asDict()
+    all_entries = [row.asDict() for row in cleaned.collect()] + CUSTOM_QUESTIONS
+
+    for data in all_entries:
         key = f"{output_prefix}/{data['question_id']}.json"
         s3.put_object(Bucket=llm_bucket, Key=key, Body=json.dumps(data))
 

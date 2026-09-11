@@ -327,13 +327,5 @@ services:
       airflow-init:
         condition: service_completed_successfully
 
-  capstonellm-clean:
-    build: .
-    image: capstonellm-clean
-    environment:
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-    command: ["--env", "docker", "--tag", "dbt"]
-
 volumes:
   postgres-db-volume:
