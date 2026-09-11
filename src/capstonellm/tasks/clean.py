@@ -49,7 +49,7 @@ def clean(spark: SparkSession, environment: str, tag: str):
     )
 
     s3 = boto3.client("s3")
-    output_prefix = f"cleaned/florencia/{tag}"
+    output_prefix = f"cleaned/anas/{tag}"
 
     for row in cleaned.collect():
         data = row.asDict()
